@@ -8,7 +8,11 @@ socket.on('connect', () => {
     let macAddress;
     for (const key in nI) {
         if(!nI[key][0].internal) {
-            macAddress = nI[key][0].mac;
+            if(nI[key][0].mac === '00:00:00:00:00:00') {
+                macAddress = Math.random().toString(36).substr(2, 15);
+            } else {
+                macAddress = nI[key][0].mac;
+            }
             break;
         }
     }
@@ -25,8 +29,9 @@ socket.on('connect', () => {
     let perfomanceDataInterval = setInterval(() => {
         performanceData()
             .then((perfData) => {
-                console.log('emmited')
-                socket.emit('perfData', perfData)
+                perfData.macAddress = macAddress;
+                socket.emit('perfData', perfData);
+                console.log('emitted from nodeclient');
             })
     }, 1000);
 
@@ -81,6 +86,7 @@ function performanceData() {
         const numCores = os.cpus().length;
 
         const cpuLoad = await getCpuLoad();
+        const isaActive = true;
         resolve({
             freeMemory,
             totalMemory,
@@ -91,7 +97,8 @@ function performanceData() {
             numCores,
             cpuModel,
             cpuSpeed,
-            cpuLoad
+            cpuLoad,
+            isaActive
         });
     });
 }
