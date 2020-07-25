@@ -1,4 +1,39 @@
 const os = require('os');
+const io = require('socket.io-client');
+
+const socket = io('http://127.0.0.1:8181');
+
+socket.on('connect', () => {
+    const nI = os.networkInterfaces();
+    let macAddress;
+    for (const key in nI) {
+        if(!nI[key][0].internal) {
+            macAddress = nI[key][0].mac;
+            break;
+        }
+    }
+
+    socket.emit('clientAuth', '32453gdfgd56y7SFHGFH6');
+
+    performanceData()
+            .then((perfData) => {
+                perfData.macAddress = macAddress;
+                socket.emit('initPerfData', perfData);
+            })
+
+    
+    let perfomanceDataInterval = setInterval(() => {
+        performanceData()
+            .then((perfData) => {
+                console.log('emmited')
+                socket.emit('perfData', perfData)
+            })
+    }, 1000);
+
+    socket.on('disconnect', () => {
+        clearInterval(perfomanceDataInterval);
+    });
+});
 
 
 function cpuAvarage() {
@@ -61,8 +96,5 @@ function performanceData() {
     });
 }
 
-performanceData()
-    .then((data) => {
-        console.log(data);
-    })
+
 
